@@ -43,6 +43,7 @@ import android.app.Activity;
 import android.app.ActivityManagerNative;
 import android.app.Dialog;
 import android.app.IActivityManager;
+import android.app.UiModeManager;
 import android.app.ProgressDialog;
 import android.app.admin.DevicePolicyManager;
 import android.content.ContentResolver;
@@ -99,6 +100,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
     private static final String KEY_AUTO_BRIGHTNESS = "auto_brightness";
     private static final String KEY_WAKEUP_WHEN_PLUGGED_UNPLUGGED = "wakeup_when_plugged_unplugged";
     private static final String KEY_WAKEUP_CATEGORY = "category_wakeup_options";
+    private static final String KEY_NIGHT_MODE = "night_mode";
     private static final String KEY_VOLUME_WAKE = "pref_volume_wake";
     private static final String KEY_PROXIMITY_WAKE = "proximity_on_wake";
 
@@ -124,6 +126,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
 
     private final Configuration mCurConfig = new Configuration();
     private ListPreference mScreenTimeoutPreference;
+    private ListPreference mNightModePreference;
     private Preference mScreenSaverPreference;
     private SwitchPreference mLiftToWakePreference;
     private SwitchPreference mAutoBrightnessPreference;
@@ -292,6 +295,13 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
         if (counter == 3) {
             prefSet.removePreference(mWakeUpOptions);
         }
+
+        mNightModePreference = (ListPreference) findPreference(KEY_NIGHT_MODE);
+        final UiModeManager uiManager = (UiModeManager) getSystemService(
+                Context.UI_MODE_SERVICE);
+        final int currentNightMode = uiManager.getNightMode();
+        mNightModePreference.setValue(String.valueOf(currentNightMode));
+        mNightModePreference.setOnPreferenceChangeListener(this);
     }
 
     private int getDefaultDensity() {
@@ -641,6 +651,16 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
         if (preference == mDozePreference) {
             boolean value = (Boolean) objValue;
             Settings.Secure.putInt(getContentResolver(), DOZE_ENABLED, value ? 1 : 0);
+        }
+        if (preference == mNightModePreference) {
+            try {
+                final int value = Integer.parseInt((String) objValue);
+                final UiModeManager uiManager = (UiModeManager) getSystemService(
+                        Context.UI_MODE_SERVICE);
+                uiManager.setNightMode(value);
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "could not persist night mode setting", e);
+            }
         }
         if (KEY_WAKEUP_WHEN_PLUGGED_UNPLUGGED.equals(key)) {
             Settings.System.putInt(getContentResolver(),
