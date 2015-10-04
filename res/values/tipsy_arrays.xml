@@ -134,4 +134,11 @@
         <item>2</item>
     </string-array>
 
+    <!-- Wi-Fi settings -->
+    <string-array name="wifi_filter_entries" translatable="false">
+        <item>@string/wifi_show_all</item>
+        <item>@string/wifi_show_protected</item>
+        <item>@string/wifi_show_open</item>
+    </string-array>
+
 </resources>
